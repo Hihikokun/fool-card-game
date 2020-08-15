@@ -7,10 +7,7 @@ function Card(value, suit) {
 function makeDeck() {
     var cards = new Array;
     for (let i = 6; i < 15; i++) {
-        cards.push(Card(i, 'spade'));
-        cards.push(Card(i, 'diamonds'));
-        cards.push(Card(i, 'clubs'));
-        cards.push(Card(i, 'hearts'));
+        cards.push(Card(i, 'spade'),Card(i, 'diamonds'),Card(i, 'clubs'),Card(i, 'hearts'));
     }
     return cards;
 }
@@ -58,6 +55,7 @@ function renderPlayerHand() {
     player.hand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.classList.add("face_up_card");
+        card.classList.add("player_hand");
         card.classList.add(element[1]);
         card.id = `p${index + 1}c`;
         card.innerHTML = element[0] + "<br />" + element[1];
@@ -106,7 +104,7 @@ function determineOrder() {
         if (num === 2) {
             console.log("The Bot won the coin toss!")
             return "Bot";
-        } else if (num === 1) {
+        } else {
             console.log("The Player won the coin toss!")
             return "Player";
         }
@@ -136,29 +134,56 @@ function takeTurn() {
 }
 
 function startTurn(el) {
+    cardsPlayedNum = 0;
     var cards = document.querySelectorAll('span');
     cards.forEach(element => {
         element.removeAttribute("onclick", "startTurn(this)");
     });
     el.id = 'a1c';
-    console.log("Turn Started");
-    console.log(el.innerHTML);
     playedCards.push(el.innerHTML);
-    console.log(playedCards);
     cardsPlayedNum++;
-    console.log(cardsPlayedNum);
     var response = botDefense(el.innerHTML);
-    var respLocation = bot.hand.indexOf(response);
-    bot.hand.splice(respLocation, 1);
-    var respCard = document.getElementById(`b${respLocation + 1}c`);
-    respCard.id = "d1c";
-    console.log(bot.hand);
-    console.log(respCard);
+    if(response === "No response") {
+        addExtra(el.innerHTML);
+        endTurn();
+        return null;
+    }
+    else {
+        var respLocation = bot.hand.indexOf(response);
+        bot.hand.splice(respLocation, 1);
+        var respCard = document.getElementById(`b${respLocation + 1}c`);
+        respCard.id = `d${cardsPlayedNum/=2}c`;
+    }
 }
 
 function endTurn() {
 
 }
+
+/*
+function addExtra(card) {
+    var num = card.substr(0, card.indexOf('<'));
+    var suit = card.substr(card.indexOf('>') + 1, card.length); 
+        player.hand.forEach(element => {
+            if(`${element[0]}` === num) {
+                var cards = document.getElementsByClassName('player_hand');
+                    cards.forEach(element => {
+                    var elNum = element.innerHTML.substr(0, card.indexOf('<') - 1);
+                    console.log(elNum);
+            });
+                element.setAttribute("onclick", playExtra());
+                console.log("this may work");
+            } else {
+                console.log("sad");
+            }
+    });
+}
+
+function playExtra() {
+    this.id = `a2c`
+}
+
+*/
 
 //IF CARD MATCHES SUIT GO ON AND IF CARD HAS LARGER NUMBER GO ON
 //IF CARD HAS NUMBER SMALLER THAN CURRENT ANSWER OR NO ANSWER GO ON
@@ -181,10 +206,10 @@ function botDefense(card) {
                 response = element;
             }
         }
-        if (element[1] != suit && element[1] === trumpCard[1] && response === undefined) {
+        else if (element[1] != suit && element[1] === trumpCard[1] && response === undefined) {
             response = element;
         }
-        if (element[1] != suit && element[1] === trumpCard[1] && response != undefined) {
+        else if (element[1] != suit && element[1] === trumpCard[1] && response != undefined) {
             if (element[0] < response[0]) {
                 response = element;
             }
@@ -192,9 +217,10 @@ function botDefense(card) {
     });
     if (response === undefined) {
         console.log("No responses at all!");
-        return null;
+        return "No response";
     }
     console.log(response);
+    cardsPlayedNum ++;
     return response;
 }
 
