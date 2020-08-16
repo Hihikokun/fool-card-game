@@ -68,6 +68,7 @@ function renderBotHand() {
     bot.hand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.classList.add("face_up_card");
+        card.classList.add("bot_hand");
         card.classList.add(element[1]);
         card.id = `b${index + 1}c`;
         card.innerHTML = element[0] + "<br />" + element[1];
@@ -140,12 +141,12 @@ function startTurn(el) {
         element.removeAttribute("onclick", "startTurn(this)");
     });
     el.id = 'a1c';
+    el.classList.add("played_card");
     playedCards.push(el.innerHTML);
     cardsPlayedNum++;
     var response = botDefense(el.innerHTML);
-    if(response === "No response") {
+    if(response === null) {
         addExtra(el.innerHTML);
-        endTurn();
         return null;
     }
     else {
@@ -153,37 +154,71 @@ function startTurn(el) {
         bot.hand.splice(respLocation, 1);
         var respCard = document.getElementById(`b${respLocation + 1}c`);
         respCard.id = `d${cardsPlayedNum/=2}c`;
+        respCard.classList.add("played_card");
     }
 }
 
 function endTurn() {
-
+    document.querySelectorAll(".played_card").forEach(element => {
+        if(element.classList.contains(".played_card")) {
+            var num = element.innerHTML.substr(0, element.innerHTML.indexOf('<'));
+            var suit = element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length); 
+            console.log(suit);
+            console.log(num);
+            console.log("yikes");
+        }
+        element.removeAttribute("id");
+        element.removeAttribute("class");
+        element.classList.add("discarded");
+    });
+    console.log("crazy")
+    cardsPlayedNum = 0;
+    
 }
 
-/*
+
 function addExtra(card) {
+    drawCards();
     var num = card.substr(0, card.indexOf('<'));
+    console.log(num);
     var suit = card.substr(card.indexOf('>') + 1, card.length); 
-        player.hand.forEach(element => {
-            if(`${element[0]}` === num) {
-                var cards = document.getElementsByClassName('player_hand');
-                    cards.forEach(element => {
-                    var elNum = element.innerHTML.substr(0, card.indexOf('<') - 1);
-                    console.log(elNum);
-            });
-                element.setAttribute("onclick", playExtra());
-                console.log("this may work");
-            } else {
+    console.log(suit);
+        document.querySelectorAll(".player_hand").forEach(element => {
+            if(element.innerHTML.substr(0,element.innerHTML.indexOf("<")) === num) {
+                element.classList.add("playable_card");
+                element.setAttribute('onclick', "playExtra(this)");
+                console.log("Pog");
+                if(element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, card.length) === suit) {
+                    console.log("redundant");
+                    element.classList.remove("playable_card");
+                }
+            }
+            else {
                 console.log("sad");
             }
     });
 }
 
-function playExtra() {
-    this.id = `a2c`
+function drawCards() {
+    while(player.hand.length < 6) {
+        player.hand.push(deck.cards[i]);
+        deck.cards.splice(i, 1);
+        console.log("nice");
+        if(deck.cards.length <= 0) {
+            break;
+        }
+    }
+    console.log(player.hand);
 }
 
-*/
+function playExtra(el) {
+    el.classList.add(".played_card");
+    el.id = `a2c`
+    el.removeAttribute('onclick', "playExtra(this)");
+    console.log("You clicked on me");
+}
+
+
 
 //IF CARD MATCHES SUIT GO ON AND IF CARD HAS LARGER NUMBER GO ON
 //IF CARD HAS NUMBER SMALLER THAN CURRENT ANSWER OR NO ANSWER GO ON
@@ -217,7 +252,7 @@ function botDefense(card) {
     });
     if (response === undefined) {
         console.log("No responses at all!");
-        return "No response";
+        return null;
     }
     console.log(response);
     cardsPlayedNum ++;

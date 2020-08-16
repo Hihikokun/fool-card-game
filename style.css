@@ -28,6 +28,29 @@
     cursor: pointer;
 }
 
+.player_hand {
+    color: orange;
+}
+
+.bot_hand {
+    color: purple;
+}
+
+.played_card {
+
+}
+
+.discarded {
+    grid-row: 5/7;
+    grid-column: 8/9;
+    height: 14vw;
+    width: 10vw;
+    color: blue;
+    align-self: center;
+    justify-self: center;
+    border: 1px solid black;
+}
+
 .deck {
     grid-row: 4/6;
     grid-column: 8/9;
@@ -106,6 +129,17 @@
 #a1c {
     grid-row: 4/5;
     grid-column: 2/3;
+    z-index: 1;
+    border-radius: 20px;
+    background-color: gainsboro;
+    text-align: center;
+    font-size: 35px;
+    border: 1px solid green;
+}
+
+#a2c {
+    grid-row: 4/5;
+    grid-column: 3/4;
     z-index: 1;
     border-radius: 20px;
     background-color: gainsboro;
