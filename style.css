@@ -37,7 +37,11 @@
 }
 
 .played_card {
+    background-color: white;
+}
 
+.playable_card {
+    color: green;
 }
 
 .discarded {
@@ -118,10 +122,6 @@
     font-size: 35px;
     border-radius: 20px;
     margin-right: 120px;
-}
-
-.playable_card {
-    color: green;
 }
 
 /*Attacking Cards*/
