@@ -148,6 +148,17 @@
     border: 1px solid green;
 }
 
+#a3c {
+    grid-row: 4/5;
+    grid-column: 4/5;
+    z-index: 1;
+    border-radius: 20px;
+    background-color: gainsboro;
+    text-align: center;
+    font-size: 35px;
+    border: 1px solid green;
+}
+
 /*Defending Cards*/
 
 #d1c {

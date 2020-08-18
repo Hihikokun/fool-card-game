@@ -132,7 +132,6 @@ function checkWin() {
 //The function will give the card the class "played_card" and the id "a1c"
 //The function will remove the card's reference from the player.hand array
 //The function will add the card's reference to the playedCards array
-//Increase cardsPlayedNum
 //Trigger a bot response
 
 function startTurn(el) {
@@ -145,68 +144,64 @@ function startTurn(el) {
             refCard = card;
         }
     })
-    player.hand.splice(player.hand.indexOf(refCard),1);
     playedCards.push(refCard);
+    playedValues.push(refCard[0].toString());
+    player.hand.splice(player.hand.indexOf(refCard),1);
     cards.forEach(element => {
         element.removeAttribute("onclick", "startTurn(this)");
     });
-    cardsPlayedNum = 1; 
-    el.id = `a${cardsPlayedNum}c`;
+    el.id = `a${playedCards.length}c`;
     el.classList.add("played_card");
+    el.classList.remove("player_hand");
     var response = botDefense(refCard);
-    if(response === null) {
+    if(response === undefined) {
         console.log("No response");
-        //addExtra(value, suit);
+        addExtra();
         return null;
     }
     else {
         var respLocation = bot.hand.indexOf(response);
         bot.hand.splice(respLocation, 1);
         var respCard = document.getElementById(`b${respLocation + 1}c`);
-        respCard.id = `d${cardsPlayedNum/=2}c`;
+        respCard.id = `d${playedCards.length/=2}c`;
         respCard.classList.add("played_card");
         console.log(bot.hand);
+        addExtra();
     }
 }
-
-//IF CARD MATCHES SUIT GO ON AND IF CARD HAS LARGER NUMBER GO ON
-//IF CARD HAS NUMBER SMALLER THAN CURRENT ANSWER OR NO ANSWER GO ON
-//SET THIS AS ANSWER
-
-//IF CARD DOES NOT MATCH SUIT, IS TRUMP CARD, AND THERE IS NO ANSWER YET GO ON
-//SET THIS AS ANSWER
-
-//IF CARD DOES NOT MATCH SUIT AND IS TRUMP CARD BUT THERE IS A REPONSE
-//IF CARD HAS NUMBER SMALLER THAN CURRENT ANSWER
-//SET THIS AS ANSWER
 
 function botDefense(card) {
     var num = card[0];
     var suit = card[1];
     var response;
     bot.hand.forEach(element => {
-        if (element[1] === suit && element[1] != trumpCard[1] && element[0] > num) {
-            if (response === undefined || element[0] < response[0] || response[1] === trumpCard[1]) {
+        if(suit === trumpCard[1] && element[1] === suit && element[0] > num) {
+            if(response === undefined || element[0] < response[0]) {
+                response = element;
+            } 
+        }
+        else if(suit != trumpCard[1] && element[1] === suit && element[0] > num) {
+            if(response === undefined || element[0] < response[0] || response[1] === trumpCard[1]) {
                 response = element;
             }
         }
-        else if (element[1] != suit && element[1] === trumpCard[1] && response === undefined) {
-            response = element;
-        }
-        else if (element[1] != suit && element[1] === trumpCard[1] && response != undefined && response[1] === trumpCard[1]) {
-            if (element[0] < response[0]) {
+        else if(suit != trumpCard[1] && element[1] === trumpCard[1]) {
+            if(response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
                 response = element;
             }
         }
     });
     if (response === undefined) {
+        noResponse = true;
         console.log("No responses at all!");
-        return null;
+        return undefined;
     }
-    playedCards.push(response);
-    console.log(playedCards);
-    cardsPlayedNum ++;
-    return response;
+        noResponse = false;
+        playedCards.push(response);
+        playedValues.push(response[0].toString());
+        console.log(playedCards.length);
+        console.log(playedCards[1], playedCards[0]);
+        return response;
 }
 
 function endTurn() {
@@ -223,33 +218,23 @@ function endTurn() {
         element.classList.add("discarded");
     });
     console.log("crazy")
-    cardsPlayedNum = 0;
     
 }
 
-/*
-function addExtra(card) {
-    drawCards();
-    var num = card.substr(0, card.indexOf('<'));
-    console.log(num);
-    var suit = card.substr(card.indexOf('>') + 1, card.length); 
-    console.log(suit);
+
+function addExtra() {
         document.querySelectorAll(".player_hand").forEach(element => {
-            if(element.innerHTML.substr(0,element.innerHTML.indexOf("<")) === num) {
+            if(playedValues.includes(element.innerHTML.substr(0,element.innerHTML.indexOf("<")))) {
                 element.classList.add("playable_card");
                 element.setAttribute('onclick', "playExtra(this)");
                 console.log("Pog");
-                if(element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, card.length) === suit) {
+                if(element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length) === suit) {
                     console.log("redundant");
                     element.classList.remove("playable_card");
                 }
             }
-            else {
-                console.log("sad");
-            }
     });
 }
-*/
 
 /* function drawCards() {
     while(player.hand.length < 6) {
@@ -266,7 +251,8 @@ function addExtra(card) {
 
 function playExtra(el) {
     el.classList.add(".played_card");
-    el.id = `a2c`
+    playedCards.push(el);
+    el.id = `a${playedCards.length}c`
     el.removeAttribute('onclick', "playExtra(this)");
     console.log("You clicked on me");
 }
@@ -301,13 +287,15 @@ var trumpCard = pickTrumpCard();
 
 var firstPlayer = determineOrder();
 
-var cardsPlayedNum = 0;
-
 var whoTurn = firstPlayer;
 
 var outcome = checkWin();
 
 var playedCards = new Array;
+
+var playedValues = new Array;
+
+var noResponse;
 
 function startGame() {
     deck.shuffle();
