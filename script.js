@@ -157,6 +157,8 @@ function startTurn(el) {
     if(response === undefined) {
         console.log("No response");
         addExtra();
+        botTakes();
+        endTurn();
         return null;
     }
     else {
@@ -173,7 +175,7 @@ function startTurn(el) {
 function botDefense(card) {
     var num = card[0];
     var suit = card[1];
-    var response;
+    var response = undefined;
     bot.hand.forEach(element => {
         if(suit === trumpCard[1] && element[1] === suit && element[0] > num) {
             if(response === undefined || element[0] < response[0]) {
@@ -199,9 +201,20 @@ function botDefense(card) {
         noResponse = false;
         playedCards.push(response);
         playedValues.push(response[0].toString());
-        console.log(playedCards.length);
-        console.log(playedCards[1], playedCards[0]);
         return response;
+}
+
+function botTakes() {
+    for(var i = 0; i < playedCards.length; i++) {
+        bot.hand.push(playedCards[i]);
+        document.querySelectorAll(".played_card").forEach(element => {
+            element.classList.add("bot_hand");
+            element.removeAttribute("id");
+            element.id = `b${bot.hand.length + i}c`;
+            element.classList.remove("played_card");
+        })
+    }
+    console.log(bot.hand);
 }
 
 function endTurn() {
@@ -218,7 +231,14 @@ function endTurn() {
         element.classList.add("discarded");
     });
     console.log("crazy")
-    
+    while(player.hand.length < 6) {
+        playerDraw();
+    }
+    while(bot.hand.length < 6) {
+        botDraw();
+    }
+    console.log(player.hand);
+    renderAfterDraw();
 }
 
 
@@ -236,18 +256,27 @@ function addExtra() {
     });
 }
 
-/* function drawCards() {
-    while(player.hand.length < 6) {
-        player.hand.push(deck.cards[i]);
-        deck.cards.splice(i, 1);
-        console.log("nice");
-        if(deck.cards.length <= 0) {
-            break;
-        }
-    }
-    console.log(player.hand);
+function playerDraw() {
+    player.hand.push(deck.cards[deck.cards.length - 1]);
+    console.log("Player drew card")
 }
-*/
+
+function botDraw() {
+    bot.hand.push(deck.cards[deck.cards.length - 1]);
+    console.log("Bot drew card")
+}
+
+function renderAfterDraw() {
+    document.querySelectorAll(".player_hand").forEach(element => {
+        element.remove();
+    });
+    document.querySelectorAll(".bot_hand").forEach(element => {
+        element.remove();
+    });
+    console.log("cards refreshed");
+    renderPlayerHand();
+    renderBotHand();
+}
 
 function playExtra(el) {
     el.classList.add(".played_card");
@@ -255,6 +284,31 @@ function playExtra(el) {
     el.id = `a${playedCards.length}c`
     el.removeAttribute('onclick', "playExtra(this)");
     console.log("You clicked on me");
+    var value = parseInt(el.innerHTML.substr(0, el.innerHTML.indexOf('<')));
+    var suit = el.innerHTML.substr(el.innerHTML.indexOf('>') + 1, el.innerHTML.length); 
+    var refCard;
+    player.hand.forEach(card => {
+        if(card[0] === value && card[1] === suit) {
+            refCard = card;
+        }
+    })
+    var response = botDefense(refCard);
+    if(response === undefined) {
+        console.log("No response");
+        addExtra();
+        botTakes();
+        endTurn();
+        return null;
+    }
+    else {
+        var respLocation = bot.hand.indexOf(response);
+        bot.hand.splice(respLocation, 1);
+        var respCard = document.getElementById(`b${respLocation + 1}c`);
+        respCard.id = `d${(playedCards.length + 1)/2}c`;
+        respCard.classList.add("played_card");
+        console.log(bot.hand);
+        addExtra();
+    }
 }
 
 
