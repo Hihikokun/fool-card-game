@@ -1,11 +1,3 @@
-/*
-startTurn(el) (FUNCTION 1) A card from the player's hand is clicked on, which will then be played and start the turn. It will also style the card and remove it from the player.hand array
-botResponse() (FUNCTION 2) The function will be a response from the bot, which will take the card given by (FUNCTION 1) as a parameter. The function will then play a response or return null, in which case (FUNCTION 3) is executed
-showOptions() (FUNCTION 3) The function will look through the player's hand and give all cards that are able to be played an onclick (FUNCTION 4) attribute as well as style the cards
-addExtra() (FUNCTION 4) The function will be executed when the player clicks on a card, and the card that is clicked will be affected by this function. It will be styled, removed from the player.hand array
-endTurn() (FUNCTION 5) The function will end the turn, which will remove all played cards from the board and the playedCards array. Then each player will draw until they have 6 cards in hand, and the turn is either returned to the previous player or passed.
-*/
-
 function Card(value, suit) {
     this.value = value;
     this.suit = suit;
@@ -15,7 +7,7 @@ function Card(value, suit) {
 function makeDeck() {
     var cards = new Array;
     for (let i = 6; i < 15; i++) {
-        cards.push(Card(i, 'spade'),Card(i, 'diamonds'),Card(i, 'clubs'),Card(i, 'hearts'));
+        cards.push(Card(i, 'spade'), Card(i, 'diamonds'), Card(i, 'clubs'), Card(i, 'hearts'));
     }
     return cards;
 }
@@ -45,10 +37,11 @@ function pickTrumpCard() {
     return deck.cards[deck.cards.length - 1];
 }
 
-
 function renderDeck() {
     deck.cards.forEach(element => {
         var card = document.createElement("span");
+        card.dataset.value = element[0];
+        card.dataset.suit = element[1];
         card.classList.add("deck", element[1]);
         card.innerHTML = element[0] + "<br />" + element[1];
         if (element === trumpCard) {
@@ -77,6 +70,13 @@ function renderBotHand() {
         card.innerHTML = element[0] + "<br />" + element[1];
         document.body.appendChild(card);
     });
+}
+
+function renderEverything() {
+    renderDeck();
+    renderPlayerHand();
+    renderBotHand();
+    console.log("Cards rendered");
 }
 
 function determineOrder() {
@@ -135,18 +135,19 @@ function checkWin() {
 //Trigger a bot response
 
 function startTurn(el) {
+    playedCards.length = 0;
     var value = parseInt(el.innerHTML.substr(0, el.innerHTML.indexOf('<')));
-    var suit = el.innerHTML.substr(el.innerHTML.indexOf('>') + 1, el.innerHTML.length); 
+    var suit = el.innerHTML.substr(el.innerHTML.indexOf('>') + 1, el.innerHTML.length);
     var cards = document.querySelectorAll('span');
     var refCard;
     player.hand.forEach(card => {
-        if(card[0] === value && card[1] === suit) {
+        if (card[0] === value && card[1] === suit) {
             refCard = card;
         }
     })
     playedCards.push(refCard);
     playedValues.push(refCard[0].toString());
-    player.hand.splice(player.hand.indexOf(refCard),1);
+    player.hand.splice(player.hand.indexOf(refCard), 1);
     cards.forEach(element => {
         element.removeAttribute("onclick", "startTurn(this)");
     });
@@ -154,20 +155,18 @@ function startTurn(el) {
     el.classList.add("played_card");
     el.classList.remove("player_hand");
     var response = botDefense(refCard);
-    if(response === undefined) {
+    if (response === undefined) {
         console.log("No response");
         addExtra();
-        botTakes();
-        endTurn();
         return null;
-    }
-    else {
+    } else {
         var respLocation = bot.hand.indexOf(response);
         bot.hand.splice(respLocation, 1);
         var respCard = document.getElementById(`b${respLocation + 1}c`);
         respCard.id = `d${playedCards.length/=2}c`;
         respCard.classList.add("played_card");
         console.log(bot.hand);
+        console.log("There is a response");
         addExtra();
     }
 }
@@ -177,18 +176,16 @@ function botDefense(card) {
     var suit = card[1];
     var response = undefined;
     bot.hand.forEach(element => {
-        if(suit === trumpCard[1] && element[1] === suit && element[0] > num) {
-            if(response === undefined || element[0] < response[0]) {
-                response = element;
-            } 
-        }
-        else if(suit != trumpCard[1] && element[1] === suit && element[0] > num) {
-            if(response === undefined || element[0] < response[0] || response[1] === trumpCard[1]) {
+        if (suit === trumpCard[1] && element[1] === suit && element[0] > num) {
+            if (response === undefined || element[0] < response[0]) {
                 response = element;
             }
-        }
-        else if(suit != trumpCard[1] && element[1] === trumpCard[1]) {
-            if(response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
+        } else if (suit != trumpCard[1] && element[1] === suit && element[0] > num) {
+            if (response === undefined || element[0] < response[0] || response[1] === trumpCard[1]) {
+                response = element;
+            }
+        } else if (suit != trumpCard[1] && element[1] === trumpCard[1]) {
+            if (response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
                 response = element;
             }
         }
@@ -198,14 +195,14 @@ function botDefense(card) {
         console.log("No responses at all!");
         return undefined;
     }
-        noResponse = false;
-        playedCards.push(response);
-        playedValues.push(response[0].toString());
-        return response;
+    noResponse = false;
+    playedCards.push(response);
+    playedValues.push(response[0].toString());
+    return response;
 }
 
 function botTakes() {
-    for(var i = 0; i < playedCards.length; i++) {
+    for (var i = 0; i < playedCards.length; i++) {
         bot.hand.push(playedCards[i]);
         document.querySelectorAll(".played_card").forEach(element => {
             element.classList.add("bot_hand");
@@ -215,44 +212,44 @@ function botTakes() {
         })
     }
     console.log(bot.hand);
+    noResponse = true;
 }
 
 function endTurn() {
-    document.querySelectorAll(".played_card").forEach(element => {
-        if(element.classList.contains(".played_card")) {
-            var num = element.innerHTML.substr(0, element.innerHTML.indexOf('<'));
-            var suit = element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length); 
-            console.log(suit);
-            console.log(num);
-            console.log("yikes");
-        }
-        element.removeAttribute("id");
-        element.removeAttribute("class");
-        element.classList.add("discarded");
-    });
-    console.log("crazy")
-    while(player.hand.length < 6) {
+    if (noResponse = false) {
+        document.querySelectorAll(".played_card").forEach(element => {
+            element.removeAttribute("id");
+            element.removeAttribute("class");
+            element.classList.add("discarded");
+        });
+        console.log("crazy");
+    }
+    console.log("ok?");
+    if (noResponse = true) {
+        botTakes();
+    }
+    while (player.hand.length < 6) {
         playerDraw();
     }
-    while(bot.hand.length < 6) {
+    while (bot.hand.length < 6) {
         botDraw();
     }
+    playedCards.length = 0;
     console.log(player.hand);
     renderAfterDraw();
 }
 
 
 function addExtra() {
-        document.querySelectorAll(".player_hand").forEach(element => {
-            if(playedValues.includes(element.innerHTML.substr(0,element.innerHTML.indexOf("<")))) {
-                element.classList.add("playable_card");
-                element.setAttribute('onclick', "playExtra(this)");
-                console.log("Pog");
-                if(element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length) === suit) {
-                    console.log("redundant");
-                    element.classList.remove("playable_card");
-                }
+    document.querySelectorAll(".player_hand").forEach(element => {
+        if (playedValues.includes(element.innerHTML.substr(0, element.innerHTML.indexOf("<")))) {
+            element.classList.add("playable_card");
+            element.setAttribute('onclick', "playExtra(this)");
+            if (element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length) === suit) {
+                console.log("redundant");
+                element.classList.remove("playable_card");
             }
+        }
     });
 }
 
@@ -285,22 +282,21 @@ function playExtra(el) {
     el.removeAttribute('onclick', "playExtra(this)");
     console.log("You clicked on me");
     var value = parseInt(el.innerHTML.substr(0, el.innerHTML.indexOf('<')));
-    var suit = el.innerHTML.substr(el.innerHTML.indexOf('>') + 1, el.innerHTML.length); 
+    var suit = el.innerHTML.substr(el.innerHTML.indexOf('>') + 1, el.innerHTML.length);
     var refCard;
     player.hand.forEach(card => {
-        if(card[0] === value && card[1] === suit) {
+        if (card[0] === value && card[1] === suit) {
             refCard = card;
         }
     })
     var response = botDefense(refCard);
-    if(response === undefined) {
+    if (response === undefined) {
         console.log("No response");
         addExtra();
         botTakes();
         endTurn();
         return null;
-    }
-    else {
+    } else {
         var respLocation = bot.hand.indexOf(response);
         bot.hand.splice(respLocation, 1);
         var respCard = document.getElementById(`b${respLocation + 1}c`);
@@ -311,6 +307,9 @@ function playExtra(el) {
     }
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global Variables/Objects
 
 var deck = {
     cards: makeDeck(),
@@ -327,15 +326,10 @@ var deck = {
     }
 }
 
-var player = {
-    hand: drawHand()
-}
 
-var bot = {
-    hand: drawHand(),
-}
+var player_hand = drawHand();
 
-// Global Variables
+var bot_hand = drawHand();
 
 var trumpCard = pickTrumpCard();
 
@@ -349,16 +343,25 @@ var playedCards = new Array;
 
 var playedValues = new Array;
 
-var noResponse;
+var noResponse = false;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Game Logic
 
 function startGame() {
-    deck.shuffle();
-    renderDeck();
-    renderPlayerHand();
-    renderBotHand();
-    //while(outcome = "Neither"){
-    //     takeTurn();
-    //     drawCards();
-    //     checkWin();
-    // } 
+    deck.shuffle(); //Done
+    renderEverything(); //Done
+    while (outcome = "Neither") {
+        if(playerTurn = true) {
+            playerTurn();
+            endTurn();
+        }
+        else {
+            botTurn();
+            endTurn();
+        }
+    }
+    endGame(outcome);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
