@@ -131,17 +131,8 @@ function checkWin() {
     }
 }
 
-//When a card is clicked on it is passed into a function
-//The function will give the card the class "played_card" and the id "a1c"
-//The function will remove the card's reference from the player.hand array
-//The function will add the card's reference to the playedCards array
-//Trigger a bot response
-
 function botTakes() {
         document.querySelectorAll(".played_card").forEach(element => {
-            console.log(playedCards.length);
-            console.log(playedCards[0]);
-            console.log(playedCards);
             botHand.push(playedCards[playedCards.length - 1]);
             playedCards.pop();
             element.classList.add("bot_hand");
@@ -214,7 +205,7 @@ function renderAfterDraw() {
 function playerTurnFunc() {
     if (checkWin() != "Neither") endGame(outcome);
     document.querySelectorAll(".player_hand").forEach(card => {
-        card.setAttribute('onclick', "playCard(this)")
+        card.setAttribute('onclick', "playCard(this)");
     });
     console.log("Cards given playCard(this)")
 }
@@ -223,7 +214,7 @@ function botTurnFunc() {
     console.log("Bot turn");
 }
 
-function playCard(el) {
+async function playCard(el) {
     var value = parseInt(el.dataset.value);
     var suit = el.dataset.suit;
     var cards = document.querySelectorAll('span');
@@ -236,8 +227,9 @@ function playCard(el) {
     });
     console.log(`The player played ${refCard}`);
     playedCards.push(refCard);
-    console.log(playedCards);
     playedValues.push(parseInt(value));
+    console.log(playedCards);
+    console.log(playedValues);
     playerHand.splice(playerHand.indexOf(refCard), 1);
     // Dealing with span elements
     cards.forEach(element => {
@@ -250,6 +242,7 @@ function playCard(el) {
         return;
     }
     botDefense(refCard);
+    console.log("ok");
 }
 
 function botDefense(card) {
@@ -279,7 +272,10 @@ function botDefense(card) {
         noResponse = false;
         playedCards.push(response);
         playedValues.push(response[0]);
+        console.log(playedCards);
+        console.log(playedValues);
         botResponse(response);
+        return response;
     }
 }
 
