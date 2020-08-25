@@ -241,7 +241,7 @@ function playCard(el) {
         playedCards.push(refCard);
         playedValues.push(parseInt(value));
         console.log(playedCards);
-        console.log(playedValues);
+
         playerHand.splice(playerHand.indexOf(refCard), 1);
         // Dealing with span elements
         cards.forEach(element => {
@@ -284,7 +284,6 @@ function botDefense(card) {
             playedCards.push(response);
             playedValues.push(response[0]);
             console.log(playedCards);
-            console.log(playedValues);
             resolve(response);
         }
     })
