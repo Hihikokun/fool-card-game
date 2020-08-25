@@ -132,14 +132,14 @@ function checkWin() {
 }
 
 function botTakes() {
-        document.querySelectorAll(".played_card").forEach(element => {
-            botHand.push(playedCards[playedCards.length - 1]);
-            playedCards.pop();
-            element.classList.add("bot_hand");
-            element.removeAttribute("id");
-            element.id = `b${botHand.length + 1}c`;
-            element.classList.remove("played_card");
-        });
+    document.querySelectorAll(".played_card").forEach(element => {
+        botHand.push(playedCards[playedCards.length - 1]);
+        playedCards.pop();
+        element.classList.add("bot_hand");
+        element.removeAttribute("id");
+        element.id = `b${botHand.length + 1}c`;
+        element.classList.remove("played_card");
+    });
     console.log("botTakes() exectued");
 }
 
@@ -168,7 +168,7 @@ function addExtra() {
     document.querySelectorAll(".player_hand").forEach(element => {
         if (playedValues.includes(element.innerHTML.substr(0, element.innerHTML.indexOf("<")))) {
             element.classList.add("playable_card");
-            element.setAttribute('onclick', "playExtra(this)");
+            element.setAttribute('onclick', "startTurn(this);");
             if (element.innerHTML.substr(element.innerHTML.indexOf('>') + 1, element.innerHTML.length) === suit) {
                 element.classList.remove("playable_card");
             }
@@ -205,98 +205,114 @@ function renderAfterDraw() {
 function playerTurnFunc() {
     if (checkWin() != "Neither") endGame(outcome);
     document.querySelectorAll(".player_hand").forEach(card => {
-        card.setAttribute('onclick', "playCard(this)");
+        card.setAttribute('onclick', "startTurn(this);");
     });
-    console.log("Cards given playCard(this)")
+    console.log("Cards given startTurn(this)")
 }
 
 function botTurnFunc() {
     console.log("Bot turn");
 }
 
-async function playCard(el) {
-    var value = parseInt(el.dataset.value);
-    var suit = el.dataset.suit;
-    var cards = document.querySelectorAll('span');
-    var refCard; //Array element, NOT span
-    // Dealing with arrays
-    playerHand.forEach(card => {
-        if (card[0] === value && card[1] === suit) {
-            refCard = card;
-        }
-    });
-    console.log(`The player played ${refCard}`);
-    playedCards.push(refCard);
-    playedValues.push(parseInt(value));
-    console.log(playedCards);
-    console.log(playedValues);
-    playerHand.splice(playerHand.indexOf(refCard), 1);
-    // Dealing with span elements
-    cards.forEach(element => {
-        element.removeAttribute("onclick", "playCard(this)");
-    });
-    el.id = `a${playedCards.length}c`;
-    el.classList.add("played_card");
-    el.classList.remove("player_hand");
-    if(noResponse) {
-        return;
-    }
-    botDefense(refCard);
-    console.log("ok");
+async function startTurn(el) {
+    let player_card = await playCard(el);
+    console.log(player_card);
+    let bot_card = await botDefense(el);
+    console.log(bot_card);
+    let bot_play_defense = await botResponse(bot_card);
+    console.log(bot_play_defense);
+    let extra = await findExtra();
+    console.log(extra);
+}
+
+function playCard(el) {
+    return new Promise((resolve, reject) => {
+        var value = parseInt(el.dataset.value);
+        var suit = el.dataset.suit;
+        var cards = document.querySelectorAll('span');
+        var refCard; //Array element, NOT span
+        // Dealing with arrays
+        playerHand.forEach(card => {
+            if (card[0] === value && card[1] === suit) {
+                refCard = card;
+            }
+        });
+        console.log(`The player played ${refCard}`);
+        playedCards.push(refCard);
+        playedValues.push(parseInt(value));
+        console.log(playedCards);
+        console.log(playedValues);
+        playerHand.splice(playerHand.indexOf(refCard), 1);
+        // Dealing with span elements
+        cards.forEach(element => {
+            element.removeAttribute("onclick", "startTurn(this);");
+        });
+        el.id = `a${playedCards.length}c`;
+        el.classList.add("played_card");
+        el.classList.remove("player_hand");
+        resolve(el);
+    })
 }
 
 function botDefense(card) {
-    var num = card[0];
-    var suit = card[1];
-    var response; //Array element
-    botHand.forEach(element => { //Determines the weakest possible answer
-        if (suit === trumpCard[1] && element[1] === suit && element[0] > num) {
-            if (response === undefined || element[0] < response[0]) {
-                response = element;
+    return new Promise((resolve, reject) => {
+        var num = card[0];
+        var suit = card[1];
+        var response; //Array element
+        botHand.forEach(element => { //Determines the weakest possible answer
+            if (suit === trumpCard[1] && element[1] === suit && element[0] > num) {
+                if (response === undefined || element[0] < response[0]) {
+                    response = element;
+                }
+            } else if (suit != trumpCard[1] && element[1] === suit && element[0] > num) {
+                if (response === undefined || response[1] === trumpCard[1] || element[0] < response[0]) {
+                    response = element;
+                }
+            } else if (suit != trumpCard[1] && element[1] === trumpCard[1]) {
+                if (response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
+                    response = element;
+                }
             }
-        } else if (suit != trumpCard[1] && element[1] === suit && element[0] > num) {
-            if (response === undefined || element[0] < response[0] || response[1] === trumpCard[1]) {
-                response = element;
-            }
-        } else if (suit != trumpCard[1] && element[1] === trumpCard[1]) {
-            if (response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
-                response = element;
-            }
+        });
+        if (response === undefined) {
+            noResponse = true;
+            console.log("No responses at all!");
+            findExtra();
+            reject("No response");
+        } else {
+            noResponse = false;
+            playedCards.push(response);
+            playedValues.push(response[0]);
+            console.log(playedCards);
+            console.log(playedValues);
+            resolve(response);
         }
-    });
-    if (response === undefined) {
-        noResponse = true;
-        console.log("No responses at all!");
-        findExtra();
-    } else {
-        noResponse = false;
-        playedCards.push(response);
-        playedValues.push(response[0]);
-        console.log(playedCards);
-        console.log(playedValues);
-        botResponse(response);
-        return response;
-    }
+    })
 }
 
 function botResponse(response) {
-    console.log(`The current cards in play are: ${playedCards}`);
-    botHand.splice(botHand.indexOf(response),1);
-    console.log(`The current Bot Hand is ${botHand}`);
-    var respCard = document.querySelector(`[data-value="${response[0]}"][data-suit="${response[1]}"]`);
-    respCard.id = `d${playedCards.length-=1}c`;
-    respCard.classList.add("played_card");
-    noResponse = false;
-    findExtra();
+    return new Promise((resolve, reject) => {
+        console.log(`The current cards in play are: ${playedCards}`);
+        botHand.splice(botHand.indexOf(response), 1);
+        console.log(`The current Bot Hand is ${botHand}`);
+        var respCard = document.querySelector(`[data-value="${response[0]}"][data-suit="${response[1]}"]`);
+        respCard.id = `d${playedCards.length-=1}c`;
+        respCard.classList.add("played_card");
+        noResponse = false;
+        resolve(response);
+    })
 }
 
 function findExtra() {
-    document.querySelectorAll(".player_hand").forEach(card => {
-        if(playedValues.includes(parseInt(card.dataset.value))) {
-            card.setAttribute('onclick', "playCard(this)");
-            card.classList.add("playable_card");
-        }
-    });
+    return new Promise((resolve, reject) => {
+        document.querySelectorAll(".player_hand").forEach(card => {
+            if (playedValues.includes(parseInt(card.dataset.value))) {
+                card.setAttribute('onclick', "startTurn(this);");
+                card.classList.add("playable_card");
+            }
+        });
+        resolve("Cards found");
+    })
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
