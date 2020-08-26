@@ -162,6 +162,7 @@ function endTurn() {
         botDraw();
     }
     renderAfterDraw();
+    numTurns = 0;
 }
 
 function addExtra() {
@@ -227,6 +228,7 @@ async function startTurn(el) {
 
 function playCard(el) {
     return new Promise((resolve, reject) => {
+        numTurns ++;
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
         var cards = document.querySelectorAll('span');
@@ -247,7 +249,7 @@ function playCard(el) {
         cards.forEach(element => {
             element.removeAttribute("onclick", "startTurn(this);");
         });
-        el.id = `a${playedCards.length}c`;
+        el.id = `a${numTurns}c`;
         el.classList.add("played_card");
         el.classList.remove("player_hand");
         resolve(el);
@@ -295,7 +297,7 @@ function botResponse(response) {
         botHand.splice(botHand.indexOf(response), 1);
         console.log(`The current Bot Hand is ${botHand}`);
         var respCard = document.querySelector(`[data-value="${response[0]}"][data-suit="${response[1]}"]`);
-        respCard.id = `d${playedCards.length-=1}c`;
+        respCard.id = `d${numTurns}c`;
         respCard.classList.add("played_card");
         noResponse = false;
         resolve(response);
@@ -352,6 +354,8 @@ var playedValues = new Array;
 var discardedCards = new Array;
 
 var noResponse = false;
+
+var numTurns = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game Logic
