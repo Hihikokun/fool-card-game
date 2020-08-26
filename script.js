@@ -145,9 +145,10 @@ function botTakes() {
 
 function endTurn() {
     if (noResponse) {
+        playerTurn = true;
         botTakes();
-    }
-    if (noResponse === false) {
+    } else if (noResponse === false) {
+        playerTurn = false;
         playedCards.length = 0;
         document.querySelectorAll(".played_card").forEach(element => {
             element.removeAttribute("class");
@@ -163,6 +164,9 @@ function endTurn() {
     }
     renderAfterDraw();
     numTurns = 0;
+    if (playerTurn) {
+        playerTurnFunc();
+    } else botStart();
 }
 
 function addExtra() {
@@ -211,8 +215,52 @@ function playerTurnFunc() {
     console.log("Cards given startTurn(this)")
 }
 
-function botTurnFunc() {
+function botFindPlay() {
+    document.querySelectorAll(".player_hand").forEach(card => {
+        card.removeAttribute('onclick', "startTurn(this);");
+    });
     console.log("Bot turn");
+    var botPlay; //Array element
+    botHand.forEach(element => {
+        if (element[1] != trumpCard) {
+            if (botPlay === undefined || element[0] <= botPlay[0] || botPlay[1] === trumpCard) {
+                botPlay = element;
+            }
+        } else if (botPlay === undefined && element[1] === trumpCard) {
+            botPlay = element;
+        }
+    })
+    playedCards.push(botPlay);
+    playedValues.push(botPlay[0]);
+    playerHand.splice(playerHand.indexOf(botPlay), 1);
+    console.log(playedCards);
+    numTurns++;
+    document.querySelectorAll(".bot_hand").forEach(card => {
+        if(parseInt(card.dataset.value) === botPlay[0] && card.dataset.suit === botPlay[1]) {
+            card.id = `a${numTurns}c`;
+            card.classList.add("played_card");
+            card.classList.remove("bot_hand");
+        }
+    })
+    return botPlay;
+}
+
+function takeCards() {
+
+}
+
+async function botStart() {
+    let bot_card = await botFindPlay();
+    console.log(bot_card);
+    playerDefense(bot_card);
+    console.log("Waiting for player response");
+}
+
+async function botContinue() {
+    let bot_card = await botFindExtra();
+    console.log(bot_card);
+    playerDefense(bot_card);
+    console.log("Waiting for player response");
 }
 
 async function startTurn(el) {
@@ -226,9 +274,56 @@ async function startTurn(el) {
     console.log(extra);
 }
 
+function botFindExtra() {
+
+}
+
+function playerDefense(el) {
+    console.log("coom");
+    document.querySelectorAll(".player_hand").forEach(card => {
+        if (card.dataset.suit === el[1] && card.dataset.value > el[0]) {
+            playerHasResponse = true;
+            card.setAttribute('onclick', "playerResponse(this);")
+        } else if (card.dataset.suit === trumpCard) {
+            if (el[1] === trumpCard && card.dataset.value > el[0]) {
+                card.setAttribute('onclick', "playerResponse(this);")
+                playerHasResponse = true;
+            }
+        }
+    })
+}
+
+function playerResponse(el) {
+    return new Promise((resolve, reject) => {
+        numTurns++;
+        document.querySelectorAll(".player_hand").forEach(card => {
+            card.removeAttribute('onclick', "playerResponse(this);");
+        })
+        var value = parseInt(el.dataset.value);
+        var suit = el.dataset.suit;
+        var cards = document.querySelectorAll('span');
+        var refCard; //Array element, NOT span
+        // Dealing with arrays
+        playerHand.forEach(card => {
+            if (card[0] === value && card[1] === suit) {
+                refCard = card;
+            }
+        });
+        console.log(`The player responded with ${refCard}`);
+        playedCards.push(refCard);
+        playedValues.push(parseInt(value));
+        console.log(playedCards);
+        playerHand.splice(playerHand.indexOf(refCard), 1);
+        el.id = `d${numTurns - 1}c`;
+        el.classList.add("played_card");
+        el.classList.remove("player_hand");
+        //resolve(botContinue());
+    })
+}
+
 function playCard(el) {
     return new Promise((resolve, reject) => {
-        numTurns ++;
+        numTurns++;
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
         var cards = document.querySelectorAll('span');
@@ -243,7 +338,6 @@ function playCard(el) {
         playedCards.push(refCard);
         playedValues.push(parseInt(value));
         console.log(playedCards);
-
         playerHand.splice(playerHand.indexOf(refCard), 1);
         // Dealing with span elements
         cards.forEach(element => {
@@ -355,17 +449,19 @@ var discardedCards = new Array;
 
 var noResponse = false;
 
+var playerHasResponse = false;
+
 var numTurns = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game Logic
 
-function startGame() {
+async function startGame() {
     deck.shuffle(); //Done
     renderEverything(); //Done
-    //if (playerTurn) 
-    playerTurnFunc();
-    //else botTurnFunc();
+    if (playerTurn)
+        playerTurnFunc();
+    else botStart();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
