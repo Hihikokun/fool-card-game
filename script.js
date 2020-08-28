@@ -257,10 +257,9 @@ async function botStart() {
 }
 
 async function botContinue() {
-    let bot_card = await botFindExtra();
-    console.log(bot_card);
-    playerDefense(bot_card);
-    console.log("Waiting for player response");
+    console.log("Waiting for bot extra");
+    botFindExtra();
+    console.log("?");
 }
 
 async function startTurn(el) {
@@ -275,17 +274,30 @@ async function startTurn(el) {
 }
 
 function botFindExtra() {
-
+    document.querySelectorAll(".bot_hand").forEach(card => {
+        playedValues.forEach(value => {
+            if(value === parseInt(card.dataset.value)) {
+                botHand.forEach(arr => {
+                    if(arr[0] === parseInt(card.dataset.value) && arr[1] === card.dataset.suit) {
+                        botExtra.push(arr);
+                        console.log(botExtra);
+                    }
+                })
+            }
+        })
+    })
 }
 
 function playerDefense(el) {
-    console.log("coom");
     document.querySelectorAll(".player_hand").forEach(card => {
         if (card.dataset.suit === el[1] && card.dataset.value > el[0]) {
             playerHasResponse = true;
             card.setAttribute('onclick', "playerResponse(this);")
-        } else if (card.dataset.suit === trumpCard) {
+        } else if (toString(card.dataset.suit) === toString(trumpCard)) {
             if (el[1] === trumpCard && card.dataset.value > el[0]) {
+                card.setAttribute('onclick', "playerResponse(this);")
+                playerHasResponse = true;
+            } else if(el[1] != trumpCard && toString(card.dataset.suit) === toString(trumpCard)) {
                 card.setAttribute('onclick', "playerResponse(this);")
                 playerHasResponse = true;
             }
@@ -301,7 +313,6 @@ function playerResponse(el) {
         })
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
-        var cards = document.querySelectorAll('span');
         var refCard; //Array element, NOT span
         // Dealing with arrays
         playerHand.forEach(card => {
@@ -317,7 +328,7 @@ function playerResponse(el) {
         el.id = `d${numTurns - 1}c`;
         el.classList.add("played_card");
         el.classList.remove("player_hand");
-        //resolve(botContinue());
+        resolve(botContinue());
     })
 }
 
@@ -446,6 +457,8 @@ var playedCards = new Array;
 var playedValues = new Array;
 
 var discardedCards = new Array;
+
+var botExtra = new Array;
 
 var noResponse = false;
 
