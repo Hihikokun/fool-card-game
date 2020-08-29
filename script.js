@@ -150,6 +150,8 @@ function endTurn() {
     } else if (noResponse === false) {
         playerTurn = false;
         playedCards.length = 0;
+        playedValues.length = 0;
+        botExtra.length = 0;
         document.querySelectorAll(".played_card").forEach(element => {
             element.removeAttribute("class");
             element.removeAttribute("id");
@@ -216,6 +218,7 @@ function playerTurnFunc() {
 }
 
 function botFindPlay() {
+    numTurns++;
     document.querySelectorAll(".player_hand").forEach(card => {
         card.removeAttribute('onclick', "startTurn(this);");
     });
@@ -230,41 +233,44 @@ function botFindPlay() {
             botPlay = element;
         }
     })
+    botHand.splice(botHand.indexOf(botPlay), 1);
     playedCards.push(botPlay);
     playedValues.push(botPlay[0]);
     playerHand.splice(playerHand.indexOf(botPlay), 1);
     console.log(playedCards);
-    numTurns++;
     document.querySelectorAll(".bot_hand").forEach(card => {
-        if(parseInt(card.dataset.value) === botPlay[0] && card.dataset.suit === botPlay[1]) {
+        if (parseInt(card.dataset.value) === botPlay[0] && card.dataset.suit === botPlay[1]) {
             card.id = `a${numTurns}c`;
-            card.classList.add("played_card");
-            card.classList.remove("bot_hand");
+            card.classList.add(".played_card");
+            card.classList.remove(".bot_hand");
+            console.log(botHand);
         }
     })
     return botPlay;
 }
 
-function takeCards() {
-
-}
-
 async function botStart() {
     let bot_card = await botFindPlay();
     console.log(bot_card);
-    playerDefense(bot_card);
+    await playerDefense(bot_card);
     console.log("Waiting for player response");
 }
 
 async function botContinue() {
     console.log("Waiting for bot extra");
-    botFindExtra();
+    await botFindExtra();
     console.log("?");
+    console.log("!");
+    if (botExtra.length > 0) {
+        var botCard = await botPlayExtra();
+        await playerDefense(botCard);
+        console.log(botExtra);
+    } else {console.log("No extras to play")}
 }
 
-async function startTurn(el) {
-    let player_card = await playCard(el);
-    console.log(player_card);
+async function startTurn(el) {F
+    let player_card = await playCard(el);F
+    console.log(player_card);F
     let bot_card = await botDefense(el);
     console.log(bot_card);
     let bot_play_defense = await botResponse(bot_card);
@@ -274,18 +280,33 @@ async function startTurn(el) {
 }
 
 function botFindExtra() {
-    document.querySelectorAll(".bot_hand").forEach(card => {
-        playedValues.forEach(value => {
-            if(value === parseInt(card.dataset.value)) {
-                botHand.forEach(arr => {
-                    if(arr[0] === parseInt(card.dataset.value) && arr[1] === card.dataset.suit) {
-                        botExtra.push(arr);
-                        console.log(botExtra);
-                    }
-                })
+    playedValues.forEach(value => {
+        console.log(botHand);
+        botHand.forEach(arr => {
+            if (arr[0] === value) {
+                botExtra.push(arr);
+                console.log(botExtra);
             }
         })
     })
+}
+
+function botPlayExtra() {
+    document.querySelectorAll(".bot_hand").forEach(card => {
+        if (card.dataset.suit === botExtra[0][1] && parseInt(card.dataset.value) === botExtra[0][0]) {
+            console.log(botExtra[0]);
+            playedValues.push(botExtra[0][0]);
+            playedCards.push(botExtra[0]);
+            card.classList.add("played_card");
+            card.classList.remove("bot_hand");
+            numTurns++;
+            card.id = `a${numTurns}c`;
+        }
+    })
+    console.log(botExtra[0]);
+    console.log("^ botExtra[0]")
+    console.log(botExtra);
+    return botExtra[0];
 }
 
 function playerDefense(el) {
@@ -297,7 +318,7 @@ function playerDefense(el) {
             if (el[1] === trumpCard && card.dataset.value > el[0]) {
                 card.setAttribute('onclick', "playerResponse(this);")
                 playerHasResponse = true;
-            } else if(el[1] != trumpCard && toString(card.dataset.suit) === toString(trumpCard)) {
+            } else if (el[1] != trumpCard && toString(card.dataset.suit) === toString(trumpCard)) {
                 card.setAttribute('onclick', "playerResponse(this);")
                 playerHasResponse = true;
             }
@@ -307,7 +328,6 @@ function playerDefense(el) {
 
 function playerResponse(el) {
     return new Promise((resolve, reject) => {
-        numTurns++;
         document.querySelectorAll(".player_hand").forEach(card => {
             card.removeAttribute('onclick', "playerResponse(this);");
         })
@@ -325,7 +345,7 @@ function playerResponse(el) {
         playedValues.push(parseInt(value));
         console.log(playedCards);
         playerHand.splice(playerHand.indexOf(refCard), 1);
-        el.id = `d${numTurns - 1}c`;
+        el.id = `d${numTurns}c`;
         el.classList.add("played_card");
         el.classList.remove("player_hand");
         resolve(botContinue());
@@ -438,7 +458,6 @@ var deck = {
         console.log("Deck Shuffled");
     }
 }
-
 
 var playerHand = drawHand();
 
