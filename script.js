@@ -145,6 +145,7 @@ function botTakes() {
 
 function playerTakes() {
     document.querySelectorAll(".played_card").forEach(element => {
+        console.log("okee");
         botHand.push(playedCards[playedCards.length - 1]);
         playedCards.pop();
         element.classList.add("player_hand");
@@ -156,6 +157,12 @@ function playerTakes() {
 }
 
 function endTurn() {
+    if(playedCards.length === 0) return;
+    console.log(playedCards.length);
+    if(playedCards.length % 2 === 1) {
+        hasResponse === false;
+        console.log(hasResponse);
+    }
     console.log(`%c${whoTurn}`, 'color: red');
     console.log(hasResponse);
     if (whoTurn === "Player") {
@@ -437,6 +444,7 @@ function botDefense(card) {
         });
         if (response === undefined) {
             hasResponse = false;
+            console.log(botHand);
             console.log("No responses at all!");
             findExtra();
             reject("No response");
