@@ -239,13 +239,14 @@ function botFindPlay() {
 
 function moveCard(player, play, action) {
     var hand;
-    if(player = botHand) {
+    console.log(player);
+    if(player === botHand) {
         hand = ".bot_hand";
-        console.log("OKAY");
+        console.log("Bot");
     }
-    else if(player = playerHand) {
+    else if(player === playerHand) {
         hand = ".player_hand";
-        console.log("WEEEE");
+        console.log("Player");
     }
     playedCards.push(play);
     playedValues.push(play[0]);
@@ -267,6 +268,7 @@ async function botStart() {
 
 async function botContinue() {
     await botFindExtra();
+    console.log(botExtra);
     if (botExtra.length > 0) {
         var botCard = await botPlayExtra();
         await playerDefense(botCard);
@@ -286,6 +288,7 @@ function botFindExtra() {
         botHand.forEach(arr => {
             if (arr[0] === value) {
                 botExtra.push(arr);
+                console.log("Card added");
             }
         })
     })
@@ -300,6 +303,7 @@ function botPlayExtra() {
             card.classList.remove("bot_hand");
             numTurns++;
             card.id = `a${numTurns}c`;
+            botHand.splice(botHand.indexOf(botExtra[0]),1);
         }
     })
     return botExtra[0];
@@ -330,7 +334,6 @@ function playerResponse(el) {
         playerHand.forEach(card => {
             if (card[0] === value && card[1] === suit) {
                 refCard = card;
-                console.log(refCard);
             }
         });
         moveCard(playerHand, refCard, "Defend");
