@@ -30,6 +30,7 @@ function pickTrumpCard() {
 }
 
 function renderDeck() {
+    console.log(deck.cards[deck.cards.length - 1]);
     deck.cards.forEach(element => {
         var card = document.createElement("span");
         card.dataset.value = element[0];
@@ -203,14 +204,12 @@ function drawUntilFull() {
 }
 
 function renderAfterDraw() {
-    document.querySelectorAll(".player_hand").forEach(element => {
-        element.remove();
-    });
-    document.querySelectorAll(".bot_hand").forEach(element => {
+    document.querySelectorAll(".player_hand, .bot_hand, .deck").forEach(element => {
         element.remove();
     });
     renderPlayerHand();
     renderBotHand();
+    renderDeck();
     console.log("Hands re-rendered");
 }
 
@@ -282,10 +281,13 @@ async function botContinue() {
 async function startTurn(el) {
     await playCard(el);
     console.log(`%cThe player played a card.`, "color: blue");
-    var bot_card = await botDefense(el);
-    console.log(`%c${bot_card}`, "color: orange");
-    await botResponse(bot_card);
-    console.log(`%cThe bot defended from a card.`, "color: red");
+    console.log(hasResponse);
+    if(hasResponse === true || hasResponse === undefined) {
+        var bot_card = await botDefense(el);
+        console.log(`%c${bot_card}`, "color: orange");
+        await botResponse(bot_card);
+        console.log(`%cThe bot defended from a card.`, "color: red");
+    }
     await findExtra();
 }
 
@@ -319,15 +321,15 @@ function botPlayExtra() {
 function playerDefense(el) {
     document.querySelectorAll(".player_hand").forEach(card => {
         if (card.dataset.suit === el[1] && card.dataset.value > el[0]) {
-            card.setAttribute('onclick', "playerResponse(this);")
-        } else if (toString(card.dataset.suit) === toString(trumpCard[1])) {
+            card.setAttribute('onclick', "playerResponse(this);");
+        } else if (card.dataset.suit === trumpCard[1]) {
             if (el[1] === trumpCard[1] && card.dataset.value > el[0]) {
                 card.setAttribute('onclick', "playerResponse(this);")
-            } else if (el[1] != trumpCard[1] && toString(card.dataset.suit) === toString(trumpCard[1])) {
+            } else if (el[1] != trumpCard[1] && card.dataset.suit === trumpCard[1]) {
                 card.setAttribute('onclick', "playerResponse(this);")
             }
         }
-    })
+    });
 }
 
 function playerResponse(el) {
@@ -372,30 +374,25 @@ function playCard(el) {
 
 function botDefense(card) {
     return new Promise((resolve, reject) => {
-        var num = card[0];
-        var suit = card[1];
-        var response; //Array element
-        console.log(botHand);
+        var num = card.dataset.value;
+        var suit = card.dataset.suit;
+        var response = undefined; //Array element
         botHand.forEach(element => { //Determines the weakest possible answer
-            console.log(element);
             if (suit === trumpCard[1] && element[1] === suit && element[0] > num) {
                 if (response === undefined || element[0] < response[0]) {
                     response = element;
-                    console.log(element);
                 }
             } else if (suit != trumpCard[1] && element[1] === suit && element[0] > num) {
                 if (response === undefined || response[1] === trumpCard[1] || element[0] < response[0]) {
                     response = element;
-                    console.log(element);
                 }
             } else if (suit != trumpCard[1] && element[1] === trumpCard[1]) {
-                if (response === undefined || (response[1] === trumpCard[1] && element[0] > response[0])) {
+                if (response === undefined || (response[1] === trumpCard[1] && element[0] < response[0])) {
                     response = element;
-                    console.log(element);
                 }
             }
         });
-        console.log(response);
+        console.log(`%c${response}`, "color: red");
         if (response === undefined) {
             hasResponse = false;
             findExtra();
@@ -470,7 +467,7 @@ var discardedCards = new Array;
 
 var botExtra = new Array;
 
-var hasResponse = false;
+var hasResponse;
 
 var numTurns = 0;
 
@@ -478,8 +475,8 @@ var numTurns = 0;
 //Game Logic
 
 async function startGame() {
-    await deck.shuffle(); //Done
-    await renderEverything(); //Done
+    await deck.shuffle();  
+    await renderEverything(); 
     if (whoTurn === "Player")
         playerTurnFunc();
     else botStart();
