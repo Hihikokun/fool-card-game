@@ -13,14 +13,18 @@ function makeDeck() {
     return cards;
 }
 
+var preGame = true;
+
 function drawHand() {
-    deck.shuffle();
+    if(preGame) {
+        deck.shuffle();
+    } 
+    preGame = false;
     var hand = new Array;
     for (let i = 0; i < 6; i++) {
-        hand.push(deck.cards[i]);
-        deck.cards.splice(i, 1);
+        hand.push(deck.cards[0]);
+        deck.cards.splice(0, 1);
     }
-    console.log("Hands distributed");
     return hand;
 }
 
@@ -30,7 +34,6 @@ function pickTrumpCard() {
 }
 
 function renderDeck() {
-    console.log(deck.cards[deck.cards.length - 1]);
     deck.cards.forEach(element => {
         var card = document.createElement("span");
         card.dataset.value = element[0];
@@ -193,12 +196,12 @@ function endTurn() {
 
 function drawUntilFull() {
     while (playerHand.length < 6) {
-        playerHand.push(deck.cards[deck.cards.length - 1]);
-        deck.cards.pop();
+        playerHand.push(deck.cards[0]);
+        deck.cards.splice(0,1);
     }
     while (botHand.length < 6) {
-        botHand.push(deck.cards[deck.cards.length - 1]);
-        deck.cards.pop();
+        botHand.push(deck.cards[0]);
+        deck.cards.splice(0,1);
     }
     console.log("Hands filled");
 }
@@ -280,10 +283,10 @@ async function botContinue() {
 
 async function startTurn(el) {
     await playCard(el);
+    var bot_card = await botDefense(el);
     console.log(`%cThe player played a card.`, "color: blue");
     console.log(hasResponse);
     if(hasResponse === true || hasResponse === undefined) {
-        var bot_card = await botDefense(el);
         console.log(`%c${bot_card}`, "color: orange");
         await botResponse(bot_card);
         console.log(`%cThe bot defended from a card.`, "color: red");
@@ -443,9 +446,13 @@ var deck = {
 
             this.cards[card1] = this.cards[card2];
             this.cards[card2] = temp;
+
+            console.log("Deck shuffled")
         }
     }
 }
+
+
 
 var playerHand = drawHand();
 
@@ -475,7 +482,6 @@ var numTurns = 0;
 //Game Logic
 
 async function startGame() {
-    await deck.shuffle();  
     await renderEverything(); 
     if (whoTurn === "Player")
         playerTurnFunc();
