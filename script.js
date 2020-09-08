@@ -16,9 +16,9 @@ function makeDeck() {
 var preGame = true;
 
 function drawHand() {
-    if(preGame) {
+    if (preGame) {
         deck.shuffle();
-    } 
+    }
     preGame = false;
     var hand = new Array;
     for (let i = 0; i < 6; i++) {
@@ -48,6 +48,7 @@ function renderDeck() {
 }
 
 function renderPlayerHand() {
+    console.log(playerHand);
     playerHand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.dataset.value = element[0];
@@ -59,6 +60,7 @@ function renderPlayerHand() {
 }
 
 function renderBotHand() {
+    console.log(botHand);
     botHand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.dataset.value = element[0];
@@ -182,8 +184,20 @@ function endTurn() {
             moveToDiscard();
         }
     }
-    drawUntilFull();
-    renderAfterDraw();
+    if (deck.length != 0) {
+        drawUntilFull();
+        renderAfterDraw();
+    }
+    var status = checkWin();
+    if (status != "Neither") {
+        if (status === "Victory") {
+            playerWin();
+        } else if (status === "Loss") {
+            botWin();
+        } else if (status === "Draw") {
+            gameDraw();
+        }
+    }
     numTurns = 0;
     if (whoTurn === "Player") {
         console.log("Turn is passed on to %cPlayer", "color: red")
@@ -194,15 +208,38 @@ function endTurn() {
     }
 }
 
+function playerWin() {
+    endMessage = "Congratulations! You won!";
+    endGame("Player");
+}
+
+function botWin() {
+    endMessage = "Better luck next time!";
+    endGame("Bot");
+}
+
+function gameDraw() {
+    endMessage = "It's a Draw!";
+    endGame("Neither");
+}
+
+function endGame(winner) {
+    var endScreen = document.createElement("div");
+    endScreen.id = "end_screen";
+    endScreen.innerHTML = winner;
+}
+
 function drawUntilFull() {
-    while (playerHand.length < 6) {
+    while (playerHand.length < 6 && deck.length != 0) {
         playerHand.push(deck.cards[0]);
-        deck.cards.splice(0,1);
+        deck.cards.splice(0, 1);
     }
-    while (botHand.length < 6) {
+    playerHand = playerHand.filter(element => element != undefined);
+    while (botHand.length < 6 && deck.length != 0) {
         botHand.push(deck.cards[0]);
-        deck.cards.splice(0,1);
+        deck.cards.splice(0, 1);
     }
+    botHand = botHand.filter(element => element != undefined);
     console.log("Hands filled");
 }
 
@@ -212,7 +249,9 @@ function renderAfterDraw() {
     });
     renderPlayerHand();
     renderBotHand();
-    renderDeck();
+    if (deck.length != 0) {
+        renderDeck();
+    }
     console.log("Hands re-rendered");
 }
 
@@ -286,7 +325,7 @@ async function startTurn(el) {
     var bot_card = await botDefense(el);
     console.log(`%cThe player played a card.`, "color: blue");
     console.log(hasResponse);
-    if(hasResponse === true || hasResponse === undefined) {
+    if (hasResponse === true || hasResponse === undefined) {
         console.log(`%c${bot_card}`, "color: orange");
         await botResponse(bot_card);
         console.log(`%cThe bot defended from a card.`, "color: red");
@@ -470,19 +509,19 @@ var playedCards = new Array;
 
 var playedValues = new Array;
 
-var discardedCards = new Array;
-
 var botExtra = new Array;
 
 var hasResponse;
 
 var numTurns = 0;
 
+var endMessage;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game Logic
 
 async function startGame() {
-    await renderEverything(); 
+    await renderEverything();
     if (whoTurn === "Player")
         playerTurnFunc();
     else botStart();
