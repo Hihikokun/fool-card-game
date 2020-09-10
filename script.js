@@ -38,10 +38,13 @@ function renderDeck() {
         var card = document.createElement("span");
         card.dataset.value = element[0];
         card.dataset.suit = element[1];
-        card.classList.add("deck", element[1]);
-        card.innerHTML = element[0] + "<br />" + element[1];
+        card.classList.add("deck", element[1]); 
+        card.style.backgroundImage = `url('Cards/blue_back.png')`;
+        card.style.backgroundSize = "cover";
         if (element === trumpCard) {
             card.classList.add("trump_card");
+            card.style.backgroundImage = `url('Cards/${element[0] + element[1].charAt(0)}.png')`;
+            card.style.backgroundSize = "cover";
         }
         document.body.appendChild(card);
     });
@@ -53,8 +56,9 @@ function renderPlayerHand() {
         var card = document.createElement("span");
         card.dataset.value = element[0];
         card.dataset.suit = element[1];
-        card.classList.add("face_up_card", "player_hand", element[1], `p${index + 1}c`);
-        card.innerHTML = element[0] + "<br />" + element[1];
+        card.style.backgroundImage = `url('Cards/${element[0] + element[1].charAt(0)}.png')`;
+        card.style.backgroundSize = "cover"; 
+        card.classList.add("player_hand", element[1], `p${index + 1}c`);
         document.body.appendChild(card);
     });
 }
@@ -65,8 +69,9 @@ function renderBotHand() {
         var card = document.createElement("span");
         card.dataset.value = element[0];
         card.dataset.suit = element[1];
-        card.classList.add("face_up_card", "bot_hand", element[1], `b${index + 1}c`);
-        card.innerHTML = element[0] + "<br />" + element[1];
+        card.style.backgroundImage = `url('Cards/blue_back.png')`;
+        card.style.backgroundSize = "cover";
+        card.classList.add("bot_hand", element[1], `b${index + 1}c`);
         document.body.appendChild(card);
     });
 }
@@ -224,9 +229,19 @@ function gameDraw() {
 }
 
 function endGame(winner) {
-    var endScreen = document.createElement("div");
-    endScreen.id = "end_screen";
-    endScreen.innerHTML = winner;
+    var restartBtn = document.createElement("button");
+    restartBtn.id = "restart_btn";
+    restartBtn.classList.add("btn");
+    restartBtn.innerHTML = "Play Again";
+    restartBtn.setAttribute('onclick', "reloadPage();");
+    document.body.appendChild(restartBtn);
+    console.log("ok");
+}
+
+function reloadPage() {
+    deck.shuffle();
+    location.reload();
+    return false;   
 }
 
 function drawUntilFull() {
@@ -296,7 +311,9 @@ function moveCard(player, play, action) {
         if (parseInt(card.dataset.value) === play[0] && card.dataset.suit === play[1]) {
             if (action === "Attack") card.id = `a${numTurns}c`;
             else if (action === "Defend") card.id = `d${numTurns}c`;
+            card.classList.remove("bot_hand", "player_hand");
             card.classList.add("played_card");
+            card.style.backgroundImage = `url('Cards/${play[0] + play[1].charAt(0)}.png')`;
             card.classList.remove(hand);
         }
     });
@@ -345,6 +362,19 @@ function botFindExtra() {
     })
 }
 
+function moveMenu() {
+    var menu = document.getElementById("menu");
+    menu
+    menu.style.gridRow = '1/4';
+    menu.style.gridColumn = '1/2'; 
+    var buttons = menu.children;
+    buttons[0].style.width = "8vw";
+    buttons[1].style.width = "8vw";
+    buttons[0].style.margin = "1vh 2vh";
+    buttons[1].style.margin = "1vh 2vh";
+    console.log(menu.children);
+}
+
 function botPlayExtra() {
     document.querySelectorAll(".bot_hand").forEach(card => {
         if (card.dataset.suit === botExtra[0][1] && parseInt(card.dataset.value) === botExtra[0][0]) {
@@ -352,6 +382,7 @@ function botPlayExtra() {
             playedCards.push(botExtra[0]);
             card.classList.add("played_card");
             card.classList.remove("bot_hand");
+            card.style.backgroundImage = `url('Cards/${botExtra[0][0] + botExtra[0][1].charAt(0)}.png')`;
             numTurns++;
             card.id = `a${numTurns}c`;
             botHand.splice(botHand.indexOf(botExtra[0]), 1);
@@ -416,6 +447,10 @@ function playCard(el) {
 
 function botDefense(card) {
     return new Promise((resolve, reject) => {
+        if(hasResponse === false) {
+            reject("No response");
+            return;
+        }
         var num = card.dataset.value;
         var suit = card.dataset.suit;
         var response = undefined; //Array element
@@ -453,6 +488,7 @@ function botResponse(response) {
         var respCard = document.querySelector(`[data-value="${response[0]}"][data-suit="${response[1]}"]`);
         console.log(`%c${respCard}`, "color: purple");
         respCard.id = `d${numTurns}c`;
+        respCard.style.backgroundImage = `url('Cards/${response[0] + response[1].charAt(0)}.png')`;
         respCard.classList.add("played_card");
         hasResponse = true;
         botHand.splice(botHand.indexOf(response), 1);
