@@ -9,7 +9,6 @@ function makeDeck() {
     for (let i = 6; i < 15; i++) {
         cards.push(Card(i, 'spade'), Card(i, 'diamonds'), Card(i, 'clubs'), Card(i, 'hearts'));
     }
-    console.log("Deck created");
     return cards;
 }
 
@@ -29,7 +28,6 @@ function drawHand() {
 }
 
 function pickTrumpCard() {
-    console.log(`Trump card selected, %c${deck.cards[deck.cards.length - 1]}`, "color: red");
     return deck.cards[deck.cards.length - 1];
 }
 
@@ -38,7 +36,7 @@ function renderDeck() {
         var card = document.createElement("span");
         card.dataset.value = element[0];
         card.dataset.suit = element[1];
-        card.classList.add("deck", element[1]); 
+        card.classList.add("deck", element[1]);
         card.style.backgroundImage = `url('Cards/blue_back.png')`;
         card.style.backgroundSize = "cover";
         if (element === trumpCard) {
@@ -51,20 +49,18 @@ function renderDeck() {
 }
 
 function renderPlayerHand() {
-    console.log(playerHand);
     playerHand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.dataset.value = element[0];
         card.dataset.suit = element[1];
         card.style.backgroundImage = `url('Cards/${element[0] + element[1].charAt(0)}.png')`;
-        card.style.backgroundSize = "cover"; 
+        card.style.backgroundSize = "cover";
         card.classList.add("player_hand", element[1], `p${index + 1}c`);
         document.body.appendChild(card);
     });
 }
 
 function renderBotHand() {
-    console.log(botHand);
     botHand.forEach(function (element, index) {
         var card = document.createElement("span");
         card.dataset.value = element[0];
@@ -80,7 +76,6 @@ function renderEverything() {
     renderDeck();
     renderPlayerHand();
     renderBotHand();
-    console.log("Cards rendered")
 }
 
 function determineOrder() {
@@ -102,21 +97,17 @@ function determineOrder() {
     });
     if (bTrump < pTrump) {
         playerTurn = false;
-        console.log("Bot plays first");
         return "Bot";
     } else if (pTrump < bTrump) {
         playerTurn = true;
-        console.log("Player plays first");
         return "Player";
     } else {
         var num = Math.floor((Math.random() * 2)) + 1;
         if (num === 2) {
             playerTurn = false;
-            console.log("Bot plays first");
             return "Bot";
         } else {
             playerTurn = true;
-            console.log("Player plays first");
             return "Player";
         }
     }
@@ -153,7 +144,6 @@ function takeCards() {
         }
         playedCards.pop();
     });
-    console.log("Current defender takes");
 }
 
 function moveToDiscard() {
@@ -161,32 +151,27 @@ function moveToDiscard() {
         element.removeAttribute("class");
         element.removeAttribute("id");
         element.classList.add("discarded");
+        playedCards.pop();
     });
-    playedCards.length = 0;
     playedValues.length = 0;
     botExtra.length = 0;
-    console.log("Played cards moved to Discard Pile");
 }
 
 function endTurn() {
     if (playedCards.length === 0) return;
     if (whoTurn === "Player") {
-        if (hasResponse === false) {
-            console.log("Some cards not beaten");
-            takeCards();
-        } else if (hasResponse) {
+        if (hasResponse) {
             whoTurn = "Bot";
-            console.log("All cards beaten");
             moveToDiscard();
+        } else if (hasResponse === false) {
+            takeCards();
         }
     } else if (whoTurn === "Bot") {
-        if (hasResponse === false) {
-            console.log("Some cards not beaten");
-            takeCards();
-        } else if (hasResponse) {
+        if (hasResponse) {
             whoTurn = "Player";
-            console.log("All cards beaten");
             moveToDiscard();
+        } else if (hasResponse === false) {
+            takeCards();
         }
     }
     if (deck.length != 0) {
@@ -204,13 +189,7 @@ function endTurn() {
         }
     }
     numTurns = 0;
-    if (whoTurn === "Player") {
-        console.log("Turn is passed on to %cPlayer", "color: red")
-        playerTurnFunc();
-    } else {
-        console.log("Turn is passed on to %cBot", "color: red")
-        botStart();
-    }
+    (whoTurn === "Player") ? playerTurnFunc() : botStart();
 }
 
 function playerWin() {
@@ -235,27 +214,38 @@ function endGame(winner) {
     restartBtn.innerHTML = "Play Again";
     restartBtn.setAttribute('onclick', "reloadPage();");
     document.body.appendChild(restartBtn);
-    console.log("ok");
 }
 
 function reloadPage() {
     deck.shuffle();
     location.reload();
-    return false;   
+    return false;
 }
 
 function drawUntilFull() {
-    while (playerHand.length < 6 && deck.length != 0) {
-        playerHand.push(deck.cards[0]);
-        deck.cards.splice(0, 1);
+    if (whoTurn === "Bot") {
+        while (playerHand.length < 6 && deck.length != 0) {
+            playerHand.push(deck.cards[0]);
+            deck.cards.splice(0, 1);
+        }
+        playerHand = playerHand.filter(element => element != undefined);
+        while (botHand.length < 6 && deck.length != 0) {
+            botHand.push(deck.cards[0]);
+            deck.cards.splice(0, 1);
+        }
+        botHand = botHand.filter(element => element != undefined);
+    } else if (whoTurn === "Player") {
+        while (botHand.length < 6 && deck.length != 0) {
+            botHand.push(deck.cards[0]);
+            deck.cards.splice(0, 1);
+        }
+        botHand = botHand.filter(element => element != undefined);
+        while (playerHand.length < 6 && deck.length != 0) {
+            playerHand.push(deck.cards[0]);
+            deck.cards.splice(0, 1);
+        }
+        playerHand = playerHand.filter(element => element != undefined);
     }
-    playerHand = playerHand.filter(element => element != undefined);
-    while (botHand.length < 6 && deck.length != 0) {
-        botHand.push(deck.cards[0]);
-        deck.cards.splice(0, 1);
-    }
-    botHand = botHand.filter(element => element != undefined);
-    console.log("Hands filled");
 }
 
 function renderAfterDraw() {
@@ -267,7 +257,6 @@ function renderAfterDraw() {
     if (deck.length != 0) {
         renderDeck();
     }
-    console.log("Hands re-rendered");
 }
 
 function playerTurnFunc() {
@@ -282,7 +271,7 @@ function botFindPlay() {
     document.querySelectorAll(".player_hand").forEach(card => {
         card.removeAttribute('onclick', "startTurn(this);");
     });
-    var botPlay; //Array element
+    var botPlay;
     botHand.forEach(element => {
         if (element[1] != trumpCard[1]) {
             if (botPlay === undefined || element[0] < botPlay[0] || botPlay[1] === trumpCard[1]) {
@@ -292,7 +281,6 @@ function botFindPlay() {
             botPlay = element;
         }
     })
-    console.log(`The bot's best play is %c${botPlay}`, "color: blue");
     moveCard(botHand, botPlay, "Attack");
     return botPlay;
 }
@@ -320,16 +308,14 @@ function moveCard(player, play, action) {
 }
 
 async function botStart() {
+    if (checkWin() != "Neither") endGame(outcome);
     let bot_card = await botFindPlay();
     hasResponse = false;
-    console.log(`%cThe bot played the first card.`, "color: red");
     await playerDefense(bot_card);
 }
 
 async function botContinue() {
     await botFindExtra();
-    console.log(botExtra);
-    console.log(`%c^^^ Bot will add`, "color: red");
     if (botExtra.length > 0) {
         var botCard = await botPlayExtra();
         hasResponse = false;
@@ -340,13 +326,7 @@ async function botContinue() {
 async function startTurn(el) {
     await playCard(el);
     var bot_card = await botDefense(el);
-    console.log(`%cThe player played a card.`, "color: blue");
-    console.log(hasResponse);
-    if (hasResponse === true || hasResponse === undefined) {
-        console.log(`%c${bot_card}`, "color: orange");
-        await botResponse(bot_card);
-        console.log(`%cThe bot defended from a card.`, "color: red");
-    }
+    if (hasResponse === true || hasResponse === undefined) await botResponse(bot_card);
     await findExtra();
 }
 
@@ -354,25 +334,21 @@ function botFindExtra() {
     botExtra.length = 0;
     playedValues.forEach(value => {
         botHand.forEach(arr => {
-            if (arr[0] === value) {
-                botExtra.push(arr);
-                console.log("Card added");
-            }
+            if (arr[0] === value) botExtra.push(arr);
         })
     })
 }
 
 function moveMenu() {
     var menu = document.getElementById("menu");
-    menu
     menu.style.gridRow = '1/4';
-    menu.style.gridColumn = '1/2'; 
+    menu.style.gridColumn = '1/2';
     var buttons = menu.children;
+    buttons[1].style.display = "inline";
     buttons[0].style.width = "8vw";
     buttons[1].style.width = "8vw";
     buttons[0].style.margin = "1vh 2vh";
     buttons[1].style.margin = "1vh 2vh";
-    console.log(menu.children);
 }
 
 function botPlayExtra() {
@@ -412,11 +388,9 @@ function playerResponse(el) {
         })
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
-        var refCard; //Array element
+        var refCard;
         playerHand.forEach(card => {
-            if (card[0] === value && card[1] === suit) {
-                refCard = card;
-            }
+            if (card[0] === value && card[1] === suit) refCard = card;
         });
         moveCard(playerHand, refCard, "Defend");
         hasResponse = true;
@@ -427,15 +401,14 @@ function playerResponse(el) {
 function playCard(el) {
     return new Promise((resolve, reject) => {
         numTurns++;
+        if (botHand.length === 0) reject();
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
         var cards = document.querySelectorAll('span');
         var refCard; //Array element, NOT span
         // Dealing with arrays
         playerHand.forEach(card => {
-            if (card[0] === value && card[1] === suit) {
-                refCard = card;
-            }
+            if (card[0] === value && card[1] === suit) refCard = card;
         });
         moveCard(playerHand, refCard, "Attack")
         cards.forEach(element => {
@@ -447,7 +420,7 @@ function playCard(el) {
 
 function botDefense(card) {
     return new Promise((resolve, reject) => {
-        if(hasResponse === false) {
+        if (hasResponse === false) {
             reject("No response");
             return;
         }
@@ -469,7 +442,6 @@ function botDefense(card) {
                 }
             }
         });
-        console.log(`%c${response}`, "color: red");
         if (response === undefined) {
             hasResponse = false;
             findExtra();
@@ -486,7 +458,6 @@ function botDefense(card) {
 function botResponse(response) {
     return new Promise((resolve, reject) => {
         var respCard = document.querySelector(`[data-value="${response[0]}"][data-suit="${response[1]}"]`);
-        console.log(`%c${respCard}`, "color: purple");
         respCard.id = `d${numTurns}c`;
         respCard.style.backgroundImage = `url('Cards/${response[0] + response[1].charAt(0)}.png')`;
         respCard.classList.add("played_card");
@@ -518,11 +489,8 @@ var deck = {
             var card1 = Math.floor((Math.random() * this.cards.length));
             var card2 = Math.floor((Math.random() * this.cards.length));
             var temp = this.cards[card1];
-
             this.cards[card1] = this.cards[card2];
             this.cards[card2] = temp;
-
-            console.log("Deck shuffled")
         }
     }
 }
@@ -549,7 +517,7 @@ var botExtra = new Array;
 
 var hasResponse;
 
-var numTurns = 0;
+var numTurns = 0; //Tracks cards played not turns
 
 var endMessage;
 
@@ -558,9 +526,7 @@ var endMessage;
 
 async function startGame() {
     await renderEverything();
-    if (whoTurn === "Player")
-        playerTurnFunc();
-    else botStart();
+    (whoTurn === "Player") ? playerTurnFunc() : botStart()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

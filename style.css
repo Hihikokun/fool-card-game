@@ -39,6 +39,10 @@
     grid-column: 4/5;
 }
 
+#end_btn {
+    display: none;
+}
+
 .played_card {
     height: 13.2vw;
     width: 8.64vw;
