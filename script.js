@@ -190,6 +190,7 @@ function endTurn() {
     }
     numTurns = 0;
     (whoTurn === "Player") ? playerTurnFunc() : botStart();
+    takingExtra = false;
 }
 
 function playerWin() {
@@ -326,6 +327,7 @@ async function botContinue() {
 async function startTurn(el) {
     await playCard(el);
     var bot_card = await botDefense(el);
+    console.log(bot_card);
     if (hasResponse === true || hasResponse === undefined) await botResponse(bot_card);
     await findExtra();
 }
@@ -420,7 +422,7 @@ function playCard(el) {
 
 function botDefense(card) {
     return new Promise((resolve, reject) => {
-        if (hasResponse === false) {
+        if (takingExtra) {
             reject("No response");
             return;
         }
@@ -444,6 +446,7 @@ function botDefense(card) {
         });
         if (response === undefined) {
             hasResponse = false;
+            takingExtra = true;
             findExtra();
             reject("No response");
         } else {
@@ -468,7 +471,7 @@ function botResponse(response) {
 }
 
 function findExtra() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         document.querySelectorAll(".player_hand").forEach(card => {
             if (playedValues.includes(parseInt(card.dataset.value))) {
                 card.setAttribute('onclick', "startTurn(this);");
@@ -520,6 +523,8 @@ var hasResponse;
 var numTurns = 0; //Tracks cards played not turns
 
 var endMessage;
+
+var takingExtra;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game Logic
