@@ -14,9 +14,21 @@
 }
 
 #menu {
-    grid-row: 3/8;
-    grid-column: 4/7;
+    grid-row: 5/7;
+    grid-column: 1/9;
     transition: 2s;
+    justify-self: center;
+}
+
+#rules {
+    grid-row: 3/6;
+    grid-column: 1/9;
+    text-align: center;
+}
+
+#rules a {
+    font-size: 3rem;
+    color: #E7926D;
 }
 
 .btn {
@@ -258,8 +270,38 @@
 }
 
 .p13c {
-    grid-row: 7/8;
+    grid-row: 6/9;
     grid-column: 2/3;
+    z-index: 0;
+}
+
+.p14c {
+    grid-row: 6/9;
+    grid-column: 3/4;
+    z-index: 0;
+}
+
+.p15c {
+    grid-row: 6/9;
+    grid-column: 4/5;
+    z-index: 0;
+}
+
+.p16c {
+    grid-row: 6/9;
+    grid-column: 5/6;
+    z-index: 0;
+}
+
+.p17c {
+    grid-row: 6/9;
+    grid-column: 6/7;
+    z-index: 0;
+}
+
+.p18c {
+    grid-row: 6/9;
+    grid-column: 7/8;
     z-index: 0;
 }
 

@@ -179,36 +179,14 @@ function endTurn() {
         renderAfterDraw();
     }
     var status = checkWin();
-    if (status != "Neither") {
-        if (status === "Victory") {
-            playerWin();
-        } else if (status === "Loss") {
-            botWin();
-        } else if (status === "Draw") {
-            gameDraw();
-        }
-    }
+    if (status != "Neither") endGame(status);
     numTurns = 0;
     (whoTurn === "Player") ? playerTurnFunc() : botStart();
     takingExtra = false;
 }
 
-function playerWin() {
-    endMessage = "Congratulations! You won!";
-    endGame("Player");
-}
-
-function botWin() {
-    endMessage = "Better luck next time!";
-    endGame("Bot");
-}
-
-function gameDraw() {
-    endMessage = "It's a Draw!";
-    endGame("Neither");
-}
-
 function endGame(winner) {
+    gameEnd = true;
     var restartBtn = document.createElement("button");
     restartBtn.id = "restart_btn";
     restartBtn.classList.add("btn");
@@ -309,13 +287,14 @@ function moveCard(player, play, action) {
 }
 
 async function botStart() {
-    if (checkWin() != "Neither") endGame(outcome);
+    if (checkWin() != "Neither") endGame(status);
     let bot_card = await botFindPlay();
     hasResponse = false;
     await playerDefense(bot_card);
 }
 
 async function botContinue() {
+    if (checkWin() != "Neither") endGame(status);
     await botFindExtra();
     if (botExtra.length > 0) {
         var botCard = await botPlayExtra();
@@ -403,7 +382,7 @@ function playerResponse(el) {
 function playCard(el) {
     return new Promise((resolve, reject) => {
         numTurns++;
-        if (botHand.length === 0) reject();
+        if (botHand.length === 0 || gameEnd) reject();
         var value = parseInt(el.dataset.value);
         var suit = el.dataset.suit;
         var cards = document.querySelectorAll('span');
@@ -526,10 +505,13 @@ var endMessage;
 
 var takingExtra;
 
+var gameEnd = false;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game Logic
 
 async function startGame() {
+    document.querySelector("#rules").style.display = "none";
     await renderEverything();
     (whoTurn === "Player") ? playerTurnFunc() : botStart()
 }
