@@ -187,11 +187,26 @@ function endTurn() {
 
 function endGame(winner) {
     gameEnd = true;
+    var outcomeMessage = document.createElement("h1");
+    outcomeMessage.id = "outcome_message";
+    switch(winner) {
+        case "Victory": 
+        outcomeMessage.innerHTML = "You won!";
+        break;
+        case "Loss": 
+        outcomeMessage.innerHTML = "You lost :(";
+        break;
+        case "Draww": 
+        outcomeMessage.innerHTML = "So close!";
+        break;
+    }
+    document.body.appendChild(outcomeMessage);
     var restartBtn = document.createElement("button");
     restartBtn.id = "restart_btn";
     restartBtn.classList.add("btn");
     restartBtn.innerHTML = "Play Again";
     restartBtn.setAttribute('onclick', "reloadPage();");
+    document.getElementById("end_btn").disabled = true; 
     document.body.appendChild(restartBtn);
 }
 

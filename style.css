@@ -27,8 +27,17 @@
 }
 
 #rules a {
-    font-size: 3rem;
+    font-size: 5rem;
     color: #E7926D;
+}
+
+#rules a:hover {
+    font-size: 5rem;
+    color: #E17C50;
+}
+
+#rules p {
+    font-size: 1.5rem;
 }
 
 .btn {
@@ -44,6 +53,20 @@
 .btn:hover {
     background-color: #E7926D;
     cursor: pointer;
+}
+
+#outcome_message {
+    grid-row: 4/5;
+    grid-column: 4/6;
+    align-self: center;
+    text-align: center;
+    font-size: 3rem;
+    margin-left: 4vw;
+    z-index: 5;
+    padding: 5px;
+    background-color: #F0EADB;
+    border: black 2px solid;
+    border-radius: 20px;
 }
 
 #restart_btn {
