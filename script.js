@@ -196,7 +196,7 @@ function endGame(winner) {
         case "Loss": 
         outcomeMessage.innerHTML = "You lost :(";
         break;
-        case "Draww": 
+        case "Draw": 
         outcomeMessage.innerHTML = "So close!";
         break;
     }

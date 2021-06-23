@@ -21,23 +21,32 @@
 }
 
 #rules {
-    grid-row: 3/6;
+    grid-row: 2/10;
     grid-column: 1/9;
     text-align: center;
+    justify-self: center;
+    z-index: 2;
+    width: 50vw;
+    height: 30vh;
 }
 
 #rules a {
-    font-size: 5rem;
+    font-size: calc(2vh + .2rem);
     color: #E7926D;
 }
 
 #rules a:hover {
-    font-size: 5rem;
+    font-size: calc(2vh + .2rem);
+    cursor: pointer;
     color: #E17C50;
 }
 
 #rules p {
-    font-size: 1.5rem;
+    font-size: calc(1.7vh + .2rem);
+}
+
+#rules h2 {
+    font-size: calc(2vh + .2rem);
 }
 
 .btn {
@@ -48,6 +57,7 @@
     width: 18vw;
     margin: 2vh 10vh 2vh 10vh;
     transition: background-color 500ms;
+    font-size: calc(1.5vh + .2rem);
 }
 
 .btn:hover {
